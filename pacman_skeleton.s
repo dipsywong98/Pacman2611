@@ -423,7 +423,90 @@ gdl_exit:
 # For each cell containing value 0, create a score point object using syscall on its corresponding
 initialize_score_points:
 #*****Your codes start here
+  addi $sp, $sp, -36
+  sw $ra, 0($sp)
+  sw $s0, 4($sp)
+  sw $s1, 8($sp)
+  sw $s2, 12($sp)
+  sw $s3, 16($sp)
+  sw $s4, 20($sp)
+  sw $s5, 24($sp)
+  sw $s6, 28($sp)
+  sw $s7, 32($sp)
   
+  li $s0 0 #scorepoint_num
+  li $s5 0 #total score
+  
+  la $t0, maze_size
+  lw $s1, 0($t0) # maze width
+  lw $s2, 4($t0) # maze height
+  la $t0, grid_cell_size
+  lw $s6, 0($t0) # grid width
+  lw $s7, 4($t0) # grid height
+  li $s3, 0	 # i
+isp_for_i:
+  slt $t0 $s3 $s1 # t0 = i<width
+  beq $t0 $0 isp_for_i_next #false break loop
+  li $s4, 0	 # j
+isp_for_j:
+  slt $t0 $s4 $s2 # t0 = j<height
+  beq $t0 $0 isp_for_j_next #false break loop
+  # get bit map, map[i][j]
+  addi $a0, $s3, 0
+  addi $a1, $s4, 0
+  jal get_bitmap_cell
+  slt $v0, $zero, $v0 #0<map[i][j], 0=>put sp
+  bne $v0, $zero, isp_for_j_continue
+isp_put_sp:
+  addi $a0, $s0, 0
+  addi $a1, $s3, 0
+  addi $a2, $s4, 0
+  addi $a3, $0, 0
+  li $v0, 205
+  syscall	#v0 become generated random value
+isp_update_mem:
+  #store to location array
+  la $t0 scorepoint_locs
+  sll $t1 $s0 3
+  add $t0 $t0 $t1
+  sw $s3 0($t0)
+  sw $s4 4($t0)
+  
+  #store to value array
+  la $t0 scorepoint_sv
+  sll $t1 $s0 2
+  add $t0 $t0 $t1
+  
+  add $s5 $s5 $v0 #add to score sum
+  addi $s0 $s0 1 #sp_sum++
+isp_for_j_continue:
+  add $s4 $s4 $s7
+  j isp_for_j
+isp_for_j_next:
+isp_for_i_continue:
+  add $s3 $s3 $s6
+  j isp_for_i
+isp_for_i_next:
+  j isp_exit
+  
+isp_exit:
+  la $t0 scorepoint_num
+  sw $s0 0($t0)
+  la $t0 remaining_sp_num
+  sw $s0 0($t0)
+  la $t0 total_score
+  sw $s5 0($t0)
+
+  lw $ra, 0($sp)
+  lw $s0, 4($sp)
+  lw $s1, 8($sp)
+  lw $s2, 12($sp)
+  lw $s3, 16($sp)
+  lw $s4, 20($sp)
+  lw $s5, 24($sp)
+  lw $s6, 28($sp)
+  lw $s7, 32($sp)
+  addi $sp, $sp, 36
 # *****Your codes end here
   jr $ra
 
@@ -1163,6 +1246,8 @@ check_intersection:
   
   # conditon4: whether A's bottom edge is above B's top edge,
   
+  li $v0 0
+  jr $ra
 
 #*****Your codes end here
 
