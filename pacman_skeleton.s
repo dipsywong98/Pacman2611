@@ -850,10 +850,61 @@ mpu_exit: lw $ra, 0($sp)
 move_pacman_down:
 # *****Task3: you need to complete this procedure move_pacman_down to perform its operations described in its comments above. 
 # *****Your codes start here
+    addi $sp, $sp, -24
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    sw $s1, 8($sp)
+    sw $s2, 12($sp)
+    sw $s3, 16($sp)
+    sw $s4, 20($sp)
 
+    la $t0, pacman_size
+    lw $s3, 0($t0) # pacman width  
+    lw $s4, 4($t0) # pacman height 
+    la $t0, maze_size
+    lw $t2, 4($t0) # maze height
 
+    la $t0, pacman_speed
+    lw $t3, 0($t0) # pacman speed
+    la $s2, pacman_locs
+    lw $s0, 0($s2) # x_loc
+    lw $s1, 4($s2) # y_loc
+    add $s1, $s1, $t3 # new y_loc
 
+    addi $t2, $t2, -1 # y-coordinate of bottom-border is (height - 1)
+    slt $t4, $t2, $s1
+    beq $t4, $zero, mpb_check_path 
+    li $s1, 0
+    j mpb_save_yloc
 
+mpb_check_path: beq $a0, $zero, mpb_save_yloc
+    # check whether pacman's top-right corner is in a wall
+    add $a1, $s1, $s4 
+    addi $a1, $a1, -1 # y-coordinate of pacman's bottom left corners #todo
+    addi $a0, $s0, 0
+    jal get_bitmap_cell
+    slt $v0, $zero, $v0 
+    bne $v0, $zero, mpb_no_move
+
+mpb_save_yloc:  sw $s1, 4($s2) # save new y_loc
+    la $t0, pacman_id
+    lw $a0, 0($t0)
+    addi $a1, $s0, 0
+    addi $a2, $s1, 0
+    li $a3, 1 # object type
+    li $v0, 206
+    syscall # set new object location   
+    li $v0, 1
+    j mpb_exit
+  
+mpb_no_move:  li $v0, 0      
+mpb_exit: lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    lw $s1, 8($sp)
+    lw $s2, 12($sp)
+    lw $s3, 16($sp)
+    lw $s4, 20($sp)
+    addi $sp, $sp, 24
 # *****Your codes end here
   jr $ra
 
