@@ -1392,8 +1392,8 @@ csc_be: beq $s0, $zero, csc_exit # whether num <= 0
 # *****Your codes start here
 # s1 is id of object
   #store all scores address to t0, scorepoint to t1, total score address to t2, total score to t3
-  move $a0 $s1
-  li $v0 1
+  #move $a0 $s1
+  #li $v0 1
   #syscall
   la $t0 scorepoint_sv
   sll $t1 $s1 2
@@ -1402,10 +1402,13 @@ csc_be: beq $s0, $zero, csc_exit # whether num <= 0
   la $t2 game_score
   lw $t3 0($t2)
   add $t3 $t3 $t1
-  move $a0 $t3
-  li $v0 1
-  syscall
+  #move $a0 $t3
+  #li $v0 1
+  #syscall
   sw $t3 0($t2)
+  move $a0 $t3
+  li $v0 203
+  syscall
 
 # *****Your codes end here
   
