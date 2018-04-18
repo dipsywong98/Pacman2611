@@ -1255,7 +1255,7 @@ cc2:
   slt $t0 $t0 $t1
   beq $t0 $0 cc3
   jr $ra
-  
+   
   # condition3: whether A's top edge is below B's bottom edge,
 cc3:  
   lw $t0 24($sp) #A
@@ -1485,6 +1485,8 @@ cgc_be: beq $s0, $zero, cgc_no_collision # whether num <= 0
   lw $t1, 4($s5) # y_loc of pacman object 
   add $t2, $v0, $zero # x_loc of ghost object 
   add $t3, $v1, $zero # y_loc of ghost object
+  add $t6, $v0, $zero # x_loc of ghost object 
+  add $t7, $v1, $zero # y_loc of ghost object
   li $v0, 0
 # *****Task6: you need to check if the pacman object intersects the ghost object.
 # You should call procedure: check_intersection to check the intersection.
@@ -1508,8 +1510,30 @@ cgc_be: beq $s0, $zero, cgc_no_collision # whether num <= 0
 # | RectB.botrigh_x |
 # | RectB.botrigh_y | <-- $sp 
 # *****Your codes start here
-    
+  addi $sp $sp -32
+  sw $t0 28($sp) #A.L
+  sw $t1 24($sp) #A.T 
+  sw $t6 12($sp) #B.L
+  sw $t7 8($sp)  #B.T
+  #A.R
+  add $t0 $t0 $s6
+  addi $t0 $t0 -1
+  sw $t0 20($sp)
+  #A.B
+  add $t0 $t1 $s7
+  addi $t0 $t0 -1
+  sw $t0 16($sp)
+  #B.R
+  add $t0 $t6 $s3
+  addi $t0 $t0 -1
+  sw $t0 4($sp)
+  #B.B
+  add $t0 $t7 $s4
+  addi $t0 $t0 -1
+  sw $t0 0($sp)
   
+  jal check_intersection
+  addi $sp $sp 32
   
 # *****Your codes end here
 
