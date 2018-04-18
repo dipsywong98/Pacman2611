@@ -1238,15 +1238,40 @@ check_intersection:
 # Thirdly, set the value of $v0 based on the check result. Then: jr $ra 
 #*****Your codes start here
 
+  li $v0 0	#default no collision
+  
   # condition1: whether A's left edge is to the right of B's right edge,
+  lw $t0 28($sp) #A
+  lw $t1 4($sp)	#B
+  slt $t0 $t1 $t0
+  beq $t0 $0 cc2
+  jr $ra
   
   # condition2: whether A's right edge is to the left of B's left edge,
+cc2:
+  lw $t0 20($sp) #A
+  lw $t1 12($sp) #B
+  slt $t0 $t0 $t1
+  beq $t0 $0 cc3
+  jr $ra
   
   # condition3: whether A's top edge is below B's bottom edge,
+cc3:  
+  lw $t0 24($sp) #A
+  lw $t1 0($sp)	#B
+  slt $t0 $t1 $t0
+  beq $t0 $0 cc4
+  jr $ra
   
   # conditon4: whether A's bottom edge is above B's top edge,
-  
-  li $v0 0
+cc4:  
+  lw $t0 16($sp) #A
+  lw $t1 8($sp) #B
+  slt $t0 $t0 $t1
+  beq $t0 $0 ccooli
+  jr $ra
+ccooli:
+  li $v0 1
   jr $ra
 
 #*****Your codes end here
@@ -1305,18 +1330,40 @@ csc_be: beq $s0, $zero, csc_exit # whether num <= 0
 # @params: the coordinates of RectA(rectangle of pacman) and RectB(rectangle of score point object) are passed through stack.
 #      In total, 8 words are passed. RectA is followed by RectB in the stack, as shown below. 
 # 
-# | RectA.topleft_x |
-# | RectA.topleft_y |
-# | RectA.botrigh_x |
+# | RectA.topleft_x | t0
+# | RectA.topleft_y | t1
+# | RectA.botrigh_x | 
 # | RectA.botrigh_y |
 # | RectB.topleft_x |
 # | RectB.topleft_y |
 # | RectB.botrigh_x |
 # | RectB.botrigh_y | <-- $sp 
 # *****Your codes start here
-    
   
+  addi $sp $sp -32
+  sw $t0 28($sp) #A.L
+  sw $t1 24($sp) #A.T 
+  sw $t6 12($sp) #B.L
+  sw $t7 8($sp)  #B.T
+  #A.R
+  add $t0 $t0 $s6
+  addi $t0 $t0 -1
+  sw $t0 20($sp)
+  #A.B
+  add $t0 $t1 $s7
+  addi $t0 $t0 -1
+  sw $t0 16($sp)
+  #B.R
+  add $t0 $t6 $s3
+  addi $t0 $t0 -1
+  sw $t0 4($sp)
+  #B.B
+  add $t0 $t7 $s4
+  addi $t0 $t0 -1
+  sw $t0 0($sp)
   
+  jal check_intersection
+  addi $sp $sp 32
 # *****Your codes end here
 
         # After calling procedure check_intersection, $v0=0 if the pacman has not intersected the score point object
