@@ -59,7 +59,7 @@ maze_bitmap: .byte
 ghost_base: .word 0 # base id of ghosts
 ghost_num:  .word 0 # the number of ghosts
 
-scorepoint_base:  .word 0 # base id of score point objects
+scorepoint_base:  .word 20 # base id of score point objects
 scorepoint_locs:  .word -1:600 # the array of initialized locations (x,y) of score point objects
 scorepoint_sv:  .word 0:300 # the score value (SV) of each score point object
 scorepoint_num:   .word 0 # the number of score point objects
@@ -458,7 +458,9 @@ isp_for_j:
   slt $v0, $zero, $v0 #0<map[i][j], 0=>put sp
   bne $v0, $zero, isp_for_j_continue
 isp_put_sp:
-  addi $a0, $s0, 0
+  la $a0 scorepoint_base
+  lw $a0 0($a0)
+  add $a0, $s0, $a0
   addi $a1, $s3, 0
   addi $a2, $s4, 0
   addi $a3, $0, 0
