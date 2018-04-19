@@ -1,3 +1,8 @@
+# Name: WONG Yuk Chun
+# sid:  20419764
+# email:ycwongal@connect.ust.hk
+
+
 .data
 
 
@@ -59,7 +64,7 @@ maze_bitmap: .byte
 ghost_base: .word 0 # base id of ghosts
 ghost_num:  .word 0 # the number of ghosts
 
-scorepoint_base:  .word 20 # base id of score point objects
+scorepoint_base:  .word 0 # base id of score point objects
 scorepoint_locs:  .word -1:600 # the array of initialized locations (x,y) of score point objects
 scorepoint_sv:  .word 0:300 # the score value (SV) of each score point object
 scorepoint_num:   .word 0 # the number of score point objects
