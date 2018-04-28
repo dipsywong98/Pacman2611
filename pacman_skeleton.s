@@ -81,6 +81,18 @@ quiz_alert_time:  .word 200 # the remaining time of the Quiz mode at which the p
 shield_alert_time:  .word 100 # the remaining time of the Shield mode at which the player will be alerted about the mode near its expiration. 
 initial_move_iteration: .word 10 # default number of game iterations for a pacman movement
 
+start_time: .word 0 #game start time
+bullets: .word 0 #number of bullets available
+bullets_text_0: .asciiz "bullets: 0"
+bullets_text_1: .asciiz "bullets: 1"
+bullets_text_2: .asciiz "bullets: 2"
+bullets_text_3: .asciiz "bullets: 3"
+bullets_text_4: .asciiz "bullets: 4"
+bullets_text_5: .asciiz "bullets: 5"
+#initial_bullet_num: .word 1 #number of bullets when game start
+bullet_renewal_time: .word 333 # in game iterations (10000ms/game iteration) 
+next_bullet_time: .word 0 # remaining iterations to get a bullet
+
 .text
 main:   
     jal input_game_params
@@ -123,6 +135,7 @@ game_move_ghost: li $v0, 213 # move all ghosts for one game iteration
     syscall
     jal process_status_input
     jal process_move_input
+    jal process_arrow_input
     j game_refresh
 
 game_quiz_input: jal process_quiz_input
@@ -132,6 +145,7 @@ game_quiz_input: jal process_quiz_input
 
 game_refresh:
     jal display_lives
+    jal display_bullets
     # refresh screen
     li $v0, 201
     syscall
@@ -170,6 +184,51 @@ set_lives_message:
   syscall 
   jr $ra
 
+#--------------------------------------------------------------------
+# procedure: display_bullets
+# Display the number of remaining bullets in game screen.
+#--------------------------------------------------------------------
+display_bullets:
+la $t0, bullets
+  lw $t0, 0($t0)
+  li $t1, 0
+  beq $t0, $t1, set_bullets_message_0
+  li $t1, 1
+  beq $t0, $t1, set_bullets_message_1
+  li $t1, 2
+  beq $t0, $t1, set_bullets_message_2
+  li $t1, 3
+  beq $t0, $t1, set_bullets_message_3
+  li $t1, 4
+  beq $t0, $t1, set_bullets_message_4
+  li $t1, 5
+  beq $t0, $t1, set_bullets_message_5
+set_bullets_message_0:
+  la $a3, bullets_text_0
+  j set_bullets_message
+set_bullets_message_1:
+  la $a3, bullets_text_1
+  j set_bullets_message
+set_bullets_message_2:
+  la $a3, bullets_text_3
+  j set_bullets_message
+set_bullets_message_3:
+  la $a3, bullets_text_3
+  j set_bullets_message
+set_bullets_message_4:
+  la $a3, bullets_text_4
+  j set_bullets_message
+set_bullets_message_5:
+  la $a3, bullets_text_5
+  j set_bullets_message
+set_bullets_message:
+  li $a0, -3 # special ID for this text object
+  addi $a1, $zero, 400 # display the message at coordinate (40, 300)
+  addi $a2, $zero, 25  
+  li $v0, 207 # create object of the game winning or losing message 
+  syscall 
+  jr $ra
+  
 #--------------------------------------------------------------------
 # procedure: trigger_quiz
 # Trigger the Quiz mode.
@@ -755,6 +814,19 @@ pmi_exit:
   lw $ra, 0($sp)
   addi $sp, $sp, 4
   jr $ra
+
+#--------------------------------------------------------------------
+# procedure: process_arrow_input
+#--------------------------------------------------------------------
+process_arrow_input:
+  la $t0, input_key 
+  lw $a0, 0($t0) # new input key
+  beq $a0 $0 pai_exit
+  li $v0 1
+  syscall
+pai_exit:  jr $ra
+
+
 
 #--------------------------------------------------------------------
 # procedure: process_quiz_input
