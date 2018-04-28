@@ -90,7 +90,7 @@ bullets_text_3: .asciiz "bullets: 3"
 bullets_text_4: .asciiz "bullets: 4"
 bullets_text_5: .asciiz "bullets: 5"
 #initial_bullet_num: .word 1 #number of bullets when game start
-bullet_renewal_time: .word 333 # in game iterations (10000ms/game iteration) 
+bullet_renewal_time: .word 50 # in game iterations (10000ms/game iteration) 
 next_bullet_time: .word 0 # remaining iterations to get a bullet
 
 .text
@@ -135,7 +135,7 @@ game_move_ghost: li $v0, 213 # move all ghosts for one game iteration
     syscall
     jal process_status_input
     jal process_move_input
-    jal process_arrow_input
+    jal process_bullet_input
     j game_refresh
 
 game_quiz_input: jal process_quiz_input
@@ -210,7 +210,7 @@ set_bullets_message_1:
   la $a3, bullets_text_1
   j set_bullets_message
 set_bullets_message_2:
-  la $a3, bullets_text_3
+  la $a3, bullets_text_2
   j set_bullets_message
 set_bullets_message_3:
   la $a3, bullets_text_3
@@ -396,6 +396,9 @@ igl_start:
   lw $a0, 0($t0) # num of ghost objects
   jal create_multi_ghosts
 
+  # 4. reset for bullets
+  jal reset_bullets
+
 igl_exit:
   # refresh screen
   li $v0, 201
@@ -404,6 +407,16 @@ igl_exit:
   lw $s0, 4($sp)
   lw $s1, 0($sp)
   addi $sp, $sp, 12
+  jr $ra
+
+#--
+#reset bullets
+#--
+reset_bullets:
+  la $t0 bullets
+  sw $0 0($t0)
+  la $t0 next_bullet_time
+  sw $0 0($t0)
   jr $ra
 
 #--------------------------------------------------------------------
@@ -816,17 +829,49 @@ pmi_exit:
   jr $ra
 
 #--------------------------------------------------------------------
-# procedure: process_arrow_input
+# procedure: process_bullet_input
 #--------------------------------------------------------------------
-process_arrow_input:
+process_bullet_input:
+  addi $sp $sp -4
+  sw $ra 0($sp)
+  jal update_bullet_number
   la $t0, input_key 
   lw $a0, 0($t0) # new input key
-  beq $a0 $0 pai_exit
-  li $v0 1
-  syscall
-pai_exit:  jr $ra
+  
 
+pbi_exit:
+  lw $ra 0($sp)
+  addi $sp $sp 4
+  jr $ra
 
+#--
+# procedure: update_bullet_number
+#--
+update_bullet_number:
+  #t0 bullets addr; t1 bullets val; t2 temp; t3 next_bullet_time addr; t4 ..val; t5 bullet time addr; t6 .. val
+  la $t0 bullets
+  lw $t1 0($t0)
+  li $t2 4
+  slt $t2 $t2 $t1
+  bne $t2 $0 ubn_exit #5<bullets return
+
+  la $t3 next_bullet_time
+  lw $t4 0($t3)
+  beq $t4 $0 ubn_add_bullet #next_bullet_time == 0 => add bullet
+  addi $t4 $t4 -1
+  sw $t4 0($t3)
+  jr $ra
+  
+ubn_add_bullet:
+  la $t5 bullet_renewal_time
+  lw $t6 0($t5)
+  sw $t6 0($t3)
+
+  addi $t1 $t1 1
+  sw $t1 0($t0)
+
+ubn_exit:
+  jr $ra  
 
 #--------------------------------------------------------------------
 # procedure: process_quiz_input
