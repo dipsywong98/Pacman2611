@@ -92,6 +92,9 @@ bullets_text_5: .asciiz "bullets: 5"
 #initial_bullet_num: .word 1 #number of bullets when game start
 bullet_renewal_time: .word 50 # in game iterations (10000ms/game iteration) 
 next_bullet_time: .word 0 # remaining iterations to get a bullet
+bullet_movement: .word 0 0 0 0 0 0 0 # moving direction of bullet(i), where i is the index. 0(available) 1(up) 2(left) 3(down) 4(right)
+bullet_locs: .word -1:14 #the locations of bullets
+bullet: .asciiz "+" #the bullet
 
 .text
 main:   
@@ -835,9 +838,53 @@ process_bullet_input:
   addi $sp $sp -4
   sw $ra 0($sp)
   jal update_bullet_number
-  la $t0, input_key 
-  lw $a0, 0($t0) # new input key
-  
+
+  #t0 bullets addr; t1 bullets val; t2 input key; t3 compare key->direction 
+  la $t0 bullets
+  lw $t1 0($t0)
+  beq $t1 $0 pbi_exit #no bullets
+
+  la $t2, input_key 
+  lw $t2, 0($t2) # new input key
+
+  li $t3, 105 # corresponds to key 'i'
+  beq $t2, $t3, pbi_set_bullet  
+  li $t3, 106 # corresponds to key 'j'
+  beq $t2, $t3, pbi_set_bullet
+  li $t3, 107 # corresponds to key 'k'
+  beq $t2, $t3, pbi_set_bullet
+  li $t3, 108 # corresponds to key 'l'
+  beq $t2, $t3, pbi_set_bullet
+  j pbi_exit # unrelated key
+
+pbi_set_bullet: #direction in t3
+  addi $t3 $t3 -104
+  addi $t1 $t1 -1
+  sw $t1 0($t0)
+
+  #find the first 0 in bullet_drection array to make it as the new bullet and store the initial point
+  li $t0 0  #i
+  la $t1 bullet_movement  #base_addr
+pbisb_for:
+  add $t2 $t1 $t0  #bullet_movement+i (i is a product of 4)
+  lw $t4 0($t2)
+  beq $t4 $0 pbisb_next #found an index s.t. dir is 0
+  addi $t0 $t0 4
+  j pbisb_for
+pbisb_next:
+  sw $t3 0($t2)   #save the direction
+  la $t1, pacman_locs
+  li $v0 207
+  move $a0 $t0
+  lw $a1, 0($t1) # x_loc
+  lw $a2, 4($t1) # y_loc
+  la $a3 bullet
+  syscall
+  la $t4 bullet_locs
+  sll $t0 $t0 2 #i*2, i is 4*id_of_bullet
+  add $t4 $t4 $t0
+  sw $a1 0($t4)
+  sw $a2 4($t4)
 
 pbi_exit:
   lw $ra 0($sp)
