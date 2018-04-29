@@ -1337,6 +1337,7 @@ mb_for:
   beq $t0 $t1 mb_down
   li $t1 4
   beq $t0 $t1 mb_right
+
 mb_done_move:
 
   move $a0 $s0
@@ -1361,19 +1362,46 @@ mb_exit:
   jr $ra
 
 #--
-# update s1:x s2: y, t2: speed
+# id*4: s0 update s1:x s2: y, t2: speed
 #--
 mb_up:
   sub $s2 $s2 $t2
+  addi $a0 $s1 7  #check top-left-hand corner
+  addi $a1 $s2 7
+  jal get_bitmap_cell
+  bne $v0 $0 mb_remove_bullet
   j mb_done_move
 mb_left:
   sub $s1 $s1 $t2
+  addi $a0 $s1 7  #check top-left-hand corner
+  addi $a1 $s2 7
+  jal get_bitmap_cell
+  bne $v0 $0 mb_remove_bullet
   j mb_done_move
 mb_down:
   add $s2 $s2 $t2
+  addi $a0 $s1 22  #check bottom-right-hand corner
+  addi $a1 $s2 22
+  jal get_bitmap_cell
+  bne $v0 $0 mb_remove_bullet
   j mb_done_move
 mb_right:
   add $s1 $s1 $t2
+  addi $a0 $s1 22  #check bottom-right-hand corner
+  addi $a1 $s2 22
+  jal get_bitmap_cell
+  bne $v0 $0 mb_remove_bullet
+  j mb_done_move
+
+#--
+# remove bullet and set movement, id*4: s0, new x y for display return at s1 s2
+#--
+mb_remove_bullet:
+  la $t1 bullet_movement
+  li $s1 0
+  li $s2 0
+  add $t1 $t1 $s0
+  sw $s1 0($t1)
   j mb_done_move
 
 #--------------------------------------------------------------------
