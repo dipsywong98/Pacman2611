@@ -388,7 +388,7 @@ igl_start:
   li $v0, 203 # set game score
   syscall 
 
-  la $t0, initial_lives # initialize game score
+  la $t0, initial_lives # initialize game lives
   lw $a0, 0($t0)
   la $t0, lives
   sw $a0, 0($t0)
