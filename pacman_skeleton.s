@@ -1786,8 +1786,16 @@ check_ghost_collisions:
   lw $s7, 4($t0) # pacman height 
 
 cgc_be: beq $s0, $zero, cgc_no_collision # whether num <= 0
+  addi $a0, $s1, 0  #id -> a0
+
+  # get the revoke time of ghost
+  la $t0 ghost_revoke_time
+  sll $t1 $a0 2
+  add $t0 $t0 $t1 #addr of revoke time of that ghost
+  lw $t1 0($t0) #value of revoke time
+  bne $t1 $0 cgc_next # revoke time != 0 => frozen
+
   li $v0, 208 # get location of ghost object
-  addi $a0, $s1, 0
   syscall
   lw $t0, 0($s5) # x_loc of pacman object 
   lw $t1, 4($s5) # y_loc of pacman object 
