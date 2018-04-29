@@ -839,6 +839,8 @@ process_bullet_input:
   sw $ra 0($sp)
   jal update_bullet_number
 
+  jal move_bullets
+
   #t0 bullets addr; t1 bullets val; t2 input key; t3 compare key->direction 
   la $t0 bullets
   lw $t1 0($t0)
@@ -1299,7 +1301,48 @@ mpr_exit: lw $ra, 0($sp)
     jr $ra
 # *****Your codes end here
 
+#--
+# procedure: move_bullets
+#--
+move_bullets:
+  addi $sp $sp -8
+  sw $ra 0($sp)
+  sw $s0 4($sp)
 
+  li $s0 0  #id of bullet * 4
+mb_for:
+  li $t0 28
+  slt $t0 $s0 $t0
+  beq $t0 $0 mb_exit
+  la $t0 bullet_movement
+  add $t0 $t0 $s0
+  lw $t0 0($t0)
+  beq $t0 $0 mb_continue
+  li $t1 1
+  beq $t0 $t1 mb_up
+  li $t1 2
+  beq $t0 $t1 mb_left
+  li $t1 3
+  beq $t0 $t1 mb_down
+  li $t1 4
+  beq $t0 $t1 mb_right
+mb_continue:
+  addi $s0 $s0 4
+  j mb_for
+mb_exit:
+  lw $ra 0($sp)
+  lw $s0 4($sp)
+  addi $sp $sp 8
+  jr $ra
+
+mb_up:
+  j mb_continue
+mb_left:
+  j mb_continue
+mb_down:
+  j mb_continue
+mb_right:
+  j mb_continue
 
 #--------------------------------------------------------------------
 # procedure: update_quiz_status
