@@ -421,6 +421,30 @@ reset_bullets:
   sw $0 0($t0)
   la $t0 next_bullet_time
   sw $0 0($t0)
+  
+  li $a0 0  #id of bullet * 4
+rb_for:
+  li $t0 28
+  slt $t0 $a0 $t0
+  beq $t0 $0 rb_next  # i>=28 exit
+  la $t0 bullet_movement
+  add $t0 $t0 $a0
+  sw $0 0($t0)
+  sll $t2 $a0 2
+  la $a3 bullet_locs
+  add $a3 $a3 $t2 # base addr of corr. bullet_loc
+  sw $0 0($a3) # x cord of bullet
+  sw $0 4($a3) # y cord of bullet
+
+  li $a1 0
+  li $a2 0
+  la $a3 bullet
+  li $v0 207
+  syscall
+  addi $a0 $a0 4
+  j rb_for
+rb_next:
+
   jr $ra
 
 #--------------------------------------------------------------------
@@ -896,6 +920,7 @@ pbi_exit:
 
 #--
 # procedure: update_bullet_number
+# do the incrementation of bullets number 
 #--
 update_bullet_number:
   #t0 bullets addr; t1 bullets val; t2 temp; t3 next_bullet_time addr; t4 ..val; t5 bullet time addr; t6 .. val
