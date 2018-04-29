@@ -81,7 +81,8 @@ quiz_alert_time:  .word 200 # the remaining time of the Quiz mode at which the p
 shield_alert_time:  .word 100 # the remaining time of the Shield mode at which the player will be alerted about the mode near its expiration. 
 initial_move_iteration: .word 10 # default number of game iterations for a pacman movement
 
-start_time: .word 0 #game start time
+# bullet variables
+start_time: .word 0 #game start time deprecated
 bullets: .word 0 #number of bullets available
 bullets_text_0: .asciiz "bullets: 0"
 bullets_text_1: .asciiz "bullets: 1"
@@ -96,6 +97,12 @@ bullet_movement: .word 0 0 0 0 0 0 0 # moving direction of bullet(i), where i is
 bullet_locs: .word -1:14 #the locations of bullets
 bullet: .asciiz "+" #the bullet
 bullet_speed: .word 6
+
+#ghost freezing variables
+ghost_revoke_time: .word 0 0 0 0 0 # ticks required to revoke the corr. ghost
+ghost_freeze_time: .word 166 # 5000ms / 30ms game iteration = 166 ticks
+ghost_freeze_time_add: .word 100 # 3000ms / 30ms game iteration = 100 ticks, for freeze time addition to  already freezed time
+ghost_locs: .word -1:10 # store the location of ghost for freezing
 
 .text
 main:   
@@ -1891,7 +1898,9 @@ bullet_ghost_collision:
 bgc_for:
   slt $t0 $s3 $s4
   beq $t0 $0 bgc_next
-  move $a0 $s3
+  la $t0 ghost_base
+  lw $t0 0($t0)
+  add $a0 $s3 $t0
   li $v0 208  #get location of ghost ->(v0,v1)
   syscall 
   sw $v0 12($sp)
