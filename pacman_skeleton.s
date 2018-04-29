@@ -18,6 +18,7 @@ background_sound_on: .word 0 # 1 if background sound is on, otherwise 0
 initial_game_score: .word 0 # the initial score of a game level
 game_score: .word 0 # the game score
 total_score: .word 0
+initial_lives: .word 3
 lives: .word 3
 lives_text_3: .asciiz "lives: 3"
 lives_text_2: .asciiz "lives: 2"
@@ -91,7 +92,7 @@ bullets_text_3: .asciiz "bullets: 3"
 bullets_text_4: .asciiz "bullets: 4"
 bullets_text_5: .asciiz "bullets: 5"
 #initial_bullet_num: .word 1 #number of bullets when game start
-bullet_renewal_time: .word 50 # in game iterations (10000ms/game iteration) 
+bullet_renewal_time: .word 333 # in game iterations (10000ms/game iteration) 
 next_bullet_time: .word 0 # remaining iterations to get a bullet
 bullet_movement: .word 0 0 0 0 0 0 0 # moving direction of bullet(i), where i is the index. 0(available) 1(up) 2(left) 3(down) 4(right)
 bullet_locs: .word -1:14 #the locations of bullets
@@ -386,6 +387,11 @@ igl_start:
   sw $a0, 0($t0)
   li $v0, 203 # set game score
   syscall 
+
+  la $t0, initial_lives # initialize game score
+  lw $a0, 0($t0)
+  la $t0, lives
+  sw $a0, 0($t0)
   
   # 1. create the pacman object
   li $v0, 205
