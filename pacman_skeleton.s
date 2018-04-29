@@ -147,6 +147,7 @@ game_move_ghost: li $v0, 213 # move all ghosts for one game iteration
     jal process_status_input
     jal process_move_input
     jal process_bullet_input
+    jal freeze_ghost_action
     j game_refresh
 
 game_quiz_input: jal process_quiz_input
@@ -1942,21 +1943,23 @@ bullet_freeze_ghost:
 
   #2. check whether this ghost is freezed already
   la $t0 ghost_revoke_time
-  sll $t1 $s3 4
+  sll $t1 $s3 2
   add $t0 $t0 $t1 #addr of revoke time of that ghost
   lw $t1 0($t0) #value of revoke time
   beq $t1 $0 bfg_new_freeze
   #already freezed
-  la $t2 ghost_freeze_time_add
-  lw $t2 0($t2)
+  #la $t2 ghost_freeze_time_add
+  #lw $t2 0($t2)
+  li $t2 100
   add $t1 $t1 $t2 # value += freeze time add
   sw $t1 0($t0)
   j bfg_exit
 
 bfg_new_freeze:
   #not freezed
-  la $t2 ghost_freeze_time
-  lw $t2 0($t2)
+  #la $t2 ghost_freeze_time
+  #lw $t2 0($t2)
+  li $t2 166
   add $t1 $t1 $t2
   sw $t1 0($t0) # value += freeze time add
   move $a0 $s3
@@ -1971,6 +1974,42 @@ bfg_new_freeze:
 bfg_exit:
   jr $ra
 
+#-----
+# procedure: freeze ghost action
+# move back the ghost and deduct the tick to revoke
+#-----
+freeze_ghost_action:
+  la $t7 ghost_num
+  lw $t7 0($t7)
+  li $t0 0 #i
+fga_for_loop:
+  slt $t1 $t0 $t7
+  beq $t1 $0 fga_next
+
+  la $t1 ghost_revoke_time
+  sll $t2 $t0 2
+  add $t1 $t2 $t1 #addr of revoke time of that ghost
+  lw $t2 0($t1) #value of revoke time
+  beq $t2 $0 fga_continue
+  addi $t2 $t2 -1
+  sw $t2 0($t1) #revoke time deduct 1
+  la $t3 ghost_locs
+  sll $t4 $t0 3
+  add $t3 $t3 $t4
+  move $a0 $t0
+  lw $a1 0($t3)
+  lw $a2 4($t3)
+  li $a3 2
+  li $v0 205
+  syscall
+fga_continue:
+  addi $t0 $t0 1
+  j fga_for_loop
+fga_next:
+fga_exit:
+  jr $ra
+
+
 #------
 # procedure: ghost_is_freezed
 # a0: ghost id
@@ -1978,7 +2017,7 @@ bfg_exit:
 #------
 ghost_is_freezed:
   la $t0 ghost_revoke_time
-  sll $t1 $a0 4
+  sll $t1 $a0 3
   add $t0 $t0 $t1 #addr of revoke time of that ghost
   lw $v0 0($t0) #value of revoke time
   jr $ra
