@@ -664,6 +664,11 @@ cmg_iter:
   li $a3, 2 # object type
   syscall # create object
   
+  la $v0 ghost_revoke_time
+  sll $v1 $s1 2
+  add $v0 $v0 $v1
+  sw $0 0($v0)
+
   # create next object
   addi $s5, $s5, 1
   addi $s1, $s1, 1
