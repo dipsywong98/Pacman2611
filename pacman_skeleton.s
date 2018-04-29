@@ -1930,15 +1930,57 @@ bgc_exit:
 
 #----
 # procedure: bullet_freeze_ghost
-# freeze ghost
+# freeze ghost $s3: id of ghost
 #----
 bullet_freeze_ghost:
+  #1. remove the bullet
   la $t1 bullet_movement
   li $s1 0
   li $s2 0
   add $t1 $t1 $s0
   sw $s1 0($t1)
+
+  #2. check whether this ghost is freezed already
+  la $t0 ghost_revoke_time
+  sll $t1 $s3 4
+  add $t0 $t0 $t1 #addr of revoke time of that ghost
+  lw $t1 0($t0) #value of revoke time
+  beq $t1 $0 bfg_new_freeze
+  #already freezed
+  la $t2 ghost_freeze_time_add
+  lw $t2 0($t2)
+  add $t1 $t1 $t2 # value += freeze time add
+  sw $t1 0($t0)
+  j bfg_exit
+
+bfg_new_freeze:
+  #not freezed
+  la $t2 ghost_freeze_time
+  lw $t2 0($t2)
+  add $t1 $t1 $t2
+  sw $t1 0($t0) # value += freeze time add
+  move $a0 $s3
+  li $v0 208  #get location of ghost
+  syscall
+  la $t2 ghost_locs
+  sll $t1 $s3 3
+  add $t2 $t2 $t1 # addr. of ghost loc of id=s3
+  sw $v0 0($t2)
+  sw $v1 4($t2)
+
 bfg_exit:
+  jr $ra
+
+#------
+# procedure: ghost_is_freezed
+# a0: ghost id
+# return v0: 0 is not freezed, otherwise return revoke tick left
+#------
+ghost_is_freezed:
+  la $t0 ghost_revoke_time
+  sll $t1 $a0 4
+  add $t0 $t0 $t1 #addr of revoke time of that ghost
+  lw $v0 0($t0) #value of revoke time
   jr $ra
 
 #--------------------------------------------------------------------
