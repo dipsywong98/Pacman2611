@@ -1364,7 +1364,8 @@ mb_for:
   beq $t0 $t1 mb_right
 
 mb_done_move:
-
+  jal bullet_ghost_collision
+mb_display_bullet:
   move $a0 $s0
   addi $a1 $s1 7
   addi $a2 $s2 24
@@ -1427,7 +1428,7 @@ mb_remove_bullet:
   li $s2 0
   add $t1 $t1 $s0
   sw $s1 0($t1)
-  j mb_done_move
+  j mb_display_bullet
 
 #--------------------------------------------------------------------
 # procedure: update_quiz_status
@@ -1861,6 +1862,75 @@ cgc_exit:
   addi $sp, $sp, 32
   jr $ra
 
+#-------
+# bullet_ghost_collision 
+# s0 :id*4 of bullet
+# s1 :x of bullet
+# s2 :y of bullet
+# set s1 s2 for display bullet
+#-------
+bullet_ghost_collision:
+  addi $sp $sp -12
+  sw $ra 0($sp)
+  sw $s3 4($sp) #for storing ghost id
+  sw $s4 8($sp) #for storing ghost num
+
+  addi $sp $sp -32
+  addi $a0 $s1 7  #check top-left-hand corner
+  addi $a1 $s2 7
+  sw $a0 28($sp)
+  sw $a1 24($sp)
+  addi $a0 $s1 22  #check bottom-right-hand corner
+  addi $a1 $s2 22
+  sw $a0 20($sp)
+  sw $a1 16($sp)
+
+  li $s3 0 #ghost id
+  la $t0 ghost_num
+  lw $s4 0($t0)
+bgc_for:
+  slt $t0 $s3 $s4
+  beq $t0 $0 bgc_next
+  move $a0 $s3
+  li $v0 208  #get location of ghost ->(v0,v1)
+  syscall 
+  sw $v0 12($sp)
+  sw $v1 8($sp)
+  la $t2 ghost_size
+  lw $t0 0($t2) #width of ghost
+  lw $t1 4($t2) #height of ghost
+  add $t0 $t0 $v0
+  add $t1 $t1 $v1
+  sw $t0 4($sp)
+  sw $t1 0($sp)
+  jal check_intersection  #v0 ==1 => there is intersection
+  beq $v0 $0 bgc_continue
+  jal bullet_freeze_ghost
+  j bgc_next # bullet can only hit one ghost
+bgc_continue:
+  addi $s3 $s3 1
+  j bgc_for 
+bgc_next:
+  addi $sp $sp 32
+bgc_exit:
+  lw $ra 0($sp)
+  lw $s3 4($sp)
+  lw $s4 8($sp)
+  addi $sp $sp 12
+  jr $ra
+
+#----
+# procedure: bullet_freeze_ghost
+# freeze ghost
+#----
+bullet_freeze_ghost:
+  la $t1 bullet_movement
+  li $s1 0
+  li $s2 0
+  add $t1 $t1 $s0
+  sw $s1 0($t1)
+bfg_exit:
+  jr $ra
 
 #--------------------------------------------------------------------
 # procedure: get_time
