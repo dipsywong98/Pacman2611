@@ -95,6 +95,7 @@ next_bullet_time: .word 0 # remaining iterations to get a bullet
 bullet_movement: .word 0 0 0 0 0 0 0 # moving direction of bullet(i), where i is the index. 0(available) 1(up) 2(left) 3(down) 4(right)
 bullet_locs: .word -1:14 #the locations of bullets
 bullet: .asciiz "+" #the bullet
+bullet_speed: .word 6
 
 .text
 main:   
@@ -881,7 +882,7 @@ pbisb_next:
   lw $a1, 0($t1) # x_loc
   lw $a2, 4($t1) # y_loc
   la $a3 bullet
-  syscall
+  #syscall
   la $t4 bullet_locs
   sll $t0 $t0 2 #i*2, i is 4*id_of_bullet
   add $t4 $t4 $t0
@@ -1305,19 +1306,29 @@ mpr_exit: lw $ra, 0($sp)
 # procedure: move_bullets
 #--
 move_bullets:
-  addi $sp $sp -8
+  addi $sp $sp -20
   sw $ra 0($sp)
   sw $s0 4($sp)
+  sw $s1 8($sp)
+  sw $s2 12($sp)
+  sw $s3 16($sp)
 
   li $s0 0  #id of bullet * 4
 mb_for:
   li $t0 28
   slt $t0 $s0 $t0
-  beq $t0 $0 mb_exit
+  beq $t0 $0 mb_exit  # i>=28 exit
   la $t0 bullet_movement
   add $t0 $t0 $s0
   lw $t0 0($t0)
-  beq $t0 $0 mb_continue
+  beq $t0 $0 mb_continue  # this bullet have no movement, see next bullet
+  sll $t2 $s0 2
+  la $s3 bullet_locs
+  add $s3 $s3 $t2 # base addr of corr. bullet_loc
+  lw $s1 0($s3) # x cord of bullet
+  lw $s2 4($s3) # y cord of bullet
+  la $t2 bullet_speed
+  lw $t2 0($t2)
   li $t1 1
   beq $t0 $t1 mb_up
   li $t1 2
@@ -1326,23 +1337,44 @@ mb_for:
   beq $t0 $t1 mb_down
   li $t1 4
   beq $t0 $t1 mb_right
+mb_done_move:
+
+  move $a0 $s0
+  addi $a1 $s1 7
+  addi $a2 $s2 24
+  la $a3 bullet
+  li $v0 207
+  syscall
+
+  sw $s1 0($s3) # x cord of bullet
+  sw $s2 4($s3) # y cord of bullet
 mb_continue:
   addi $s0 $s0 4
   j mb_for
 mb_exit:
   lw $ra 0($sp)
   lw $s0 4($sp)
-  addi $sp $sp 8
+  lw $s1 8($sp)
+  lw $s2 12($sp)
+  lw $s3 16($sp)
+  addi $sp $sp 20
   jr $ra
 
+#--
+# update s1:x s2: y, t2: speed
+#--
 mb_up:
-  j mb_continue
+  sub $s2 $s2 $t2
+  j mb_done_move
 mb_left:
-  j mb_continue
+  sub $s1 $s1 $t2
+  j mb_done_move
 mb_down:
-  j mb_continue
+  add $s2 $s2 $t2
+  j mb_done_move
 mb_right:
-  j mb_continue
+  add $s1 $s1 $t2
+  j mb_done_move
 
 #--------------------------------------------------------------------
 # procedure: update_quiz_status
