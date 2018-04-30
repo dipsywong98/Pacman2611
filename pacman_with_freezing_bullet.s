@@ -100,10 +100,10 @@ bullet: .asciiz "+" #the bullet
 bullet_speed: .word 6
 
 #ghost freezing variables
-ghost_revoke_time: .word 0 0 0 0 0 # ticks required to revoke the corr. ghost
+ghost_revoke_time: .word -1:100 # ticks required to revoke the corr. ghost
 ghost_freeze_time: .word 166 # 5000ms / 30ms game iteration = 166 ticks
 ghost_freeze_time_add: .word 100 # 3000ms / 30ms game iteration = 100 ticks, for freeze time addition to  already freezed time
-ghost_locs: .word -1:10 # store the location of ghost for freezing
+ghost_locs: .word -1:200 # store the location of ghost for freezing
 
 .text
 main:   
@@ -1966,7 +1966,7 @@ bgc_exit:
 
 #----
 # procedure: bullet_freeze_ghost
-# freeze ghost $s3: id of ghost
+# freeze ghost $s3: id of ghost s0 :id*4 of bullet
 #----
 bullet_freeze_ghost:
   #1. remove the bullet
